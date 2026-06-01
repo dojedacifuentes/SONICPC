@@ -149,6 +149,19 @@
     box-shadow:0 14px 32px rgba(0,0,0,.48), inset 0 0 0 1px rgba(255,255,255,.05);
   }
   #quick-quiz.hidden{ display:none; }
+  #codex-panel{
+    position:absolute; right:14px; bottom:18px; z-index:9; width:min(330px, calc(100% - 28px));
+    color:#fff4d6; background:linear-gradient(180deg, rgba(37,26,65,.94), rgba(18,12,36,.94));
+    border:2px solid #7fdcff; border-radius:12px; padding:12px;
+    box-shadow:0 14px 32px rgba(0,0,0,.48), inset 0 0 0 1px rgba(255,255,255,.05);
+    font-weight:800;
+  }
+  #codex-panel.hidden{ display:none; }
+  .codex-title{ font-family:"Press Start 2P"; font-size:9px; color:#ffd23f; margin-bottom:8px; }
+  #codex-body{ font-size:13px; line-height:1.18; }
+  #codex-body .codex-row{ display:flex; justify-content:space-between; gap:8px; border-top:1px solid rgba(255,255,255,.12); padding:6px 0; }
+  #codex-body .codex-row:first-child{ border-top:0; }
+  #codex-body .rare{ color:#7fdcff; white-space:nowrap; }
   .quiz-kicker{
     font-family:"Press Start 2P"; font-size:9px; color:#7fdcff; margin-bottom:7px;
   }
@@ -169,6 +182,7 @@
     .title-sub{ font-size:10px; }
     #study-toast{ font-size:12px; left:10px; bottom:10px; }
     #quick-quiz{ bottom:10px; padding:10px; }
+    #codex-panel{ left:10px; right:10px; bottom:10px; width:auto; }
     #quiz-question{ font-size:13px; }
     #quiz-options{ grid-template-columns:1fr; gap:6px; }
     .quiz-option{ min-height:36px; font-size:12px; }
@@ -199,7 +213,7 @@
         <div class="kicker">Cruza la Ciudad del Grado, desbloquea artículos como habilidades y derrota dudas doctrinales con argumentos precisos.</div>
         <div class="ctrls">
           <div><b>← →</b> / A D mover · <b>SPACE</b> / ↑ saltar · <b>SHIFT</b> sprint doctrinal</div>
-          <div><b>J / X</b> argumento · <b>1 2 3</b> contestar · <b>P</b> pausa · <b>M</b> audio</div>
+          <div><b>J / X</b> argumento · <b>1 2 3</b> contestar · <b>E</b> hablar · <b>C</b> codex · <b>P</b> pausa</div>
         </div>
         <button class="btn" id="btn-start" type="button">Entrar a la ciudad ▶</button>
       </div>
@@ -228,9 +242,13 @@
       </div>
       <div id="study-toast" aria-live="polite"></div>
       <div id="quick-quiz" class="hidden" aria-live="polite">
-        <div class="quiz-kicker">Interrogación relámpago</div>
+        <div class="quiz-kicker" id="quiz-kicker">Interrogacion relampago</div>
         <div id="quiz-question"></div>
         <div id="quiz-options"></div>
+      </div>
+      <div id="codex-panel" class="hidden" aria-live="polite">
+        <div class="codex-title">CODEX JURIDICO</div>
+        <div id="codex-body"></div>
       </div>
     </div>
 
@@ -306,6 +324,41 @@
   let spikes = [];                   // {x,y,w,h}
   let enemySpawns = [];              // {c,r}
   let enemies = [];                  // live enemies
+
+  const FEATURE_FLAGS = {
+    progression: true,
+    relics: true,
+    npcMissions: true,
+    legalCases: true,
+    microEvents: true,
+    codex: true
+  };
+  const STORAGE_KEY = 'sonicpc_ius_ex_machina_progress_v1';
+  const RANKS = ['Postulante', 'Ayudante', 'Litigante', 'Relator', 'Comision Ready'];
+  const RELICS = [
+    {id:'art434', name:'Art. 434 CPC', rarity:'EPICA', bonus:'+15% XP ejecutivo', tip:'La via ejecutiva exige titulo.'},
+    {id:'art464', name:'Art. 464 CPC', rarity:'RARA', bonus:'+1 respuesta segura', tip:'Excepciones del ejecutado.'},
+    {id:'instpub', name:'Instrumento Publico', rarity:'RARA', bonus:'+10% XP prueba', tip:'Plena fe en puntos clave.'},
+    {id:'presuncion', name:'Presuncion Judicial', rarity:'COMUN', bonus:'+5% XP prueba', tip:'Inferir con precision.'},
+    {id:'casacion', name:'Casacion', rarity:'EPICA', bonus:'+20% XP recursos', tip:'Ataca errores de derecho.'},
+    {id:'proteccion', name:'Proteccion', rarity:'RARA', bonus:'+10% XP constitucional', tip:'Restablece el imperio del derecho.'}
+  ];
+  const NPCS = [
+    {c:14,r:8,name:'Secretario', sprite:'apple', line:'Cuida la notificacion. Sin emplazamiento, el juicio tambalea.', mission:'Toma 3 articulos.', relic:'instpub'},
+    {c:52,r:7,name:'Juez', sprite:'amulet', line:'No alegues de memoria. Di regla, hecho y consecuencia.', mission:'Resuelve una duda.', relic:'presuncion'},
+    {c:88,r:6,name:'Relator', sprite:'gem', line:'En recursos, identifica vicio y peticion concreta.', mission:'Gana una pregunta oral.', relic:'casacion'},
+    {c:132,r:8,name:'Ministro', sprite:'amulet', line:'Constitucional: ilegalidad o arbitrariedad, luego garantia.', mission:'Llega con confianza.', relic:'proteccion'}
+  ];
+  const MICRO_EVENTS = [
+    {id:'expediente', name:'EXPEDIENTE PERDIDO', goal:'Recolecta 2 articulos', kind:'article', target:2, ttl:1500},
+    {id:'notificacion', name:'NOTIFICACION URGENTE', goal:'Derrota 1 duda', kind:'enemy', target:1, ttl:1200},
+    {id:'audiencia', name:'AUDIENCIA SORPRESA', goal:'Responde 1 pregunta', kind:'quiz', target:1, ttl:1350}
+  ];
+  const LEGAL_CASES = [
+    {topic:'Cliente', q:'Pedro dice que pago. Juan niega el pago. Quien prueba?', options:['Juan','Pedro','El juez'], answer:1, ok:'Pago extingue obligacion: lo prueba quien lo alega.'},
+    {topic:'Conflicto', q:'Demanda sin tribunal competente. Que alerta se enciende?', options:['Incompetencia','Cosa juzgada','Confesion'], answer:0, ok:'Competencia primero: sin juez competente, el proceso falla.'},
+    {topic:'Decision', q:'Hay titulo ejecutivo claro. Que via corresponde?', options:['Ordinario','Ejecutivo','Proteccion'], answer:1, ok:'Titulo ejecutivo habilita cobro rapido por via ejecutiva.'}
+  ];
 
   const LAW_ARTICLES = [
     {short:'Art. 1437 CC', title:'Fuentes de las obligaciones', tip:'Contrato, cuasicontrato, delito, cuasidelito y ley.'},
@@ -498,8 +551,73 @@
   let cameraX = 0, tick = 0, clearT = 0, jumpBuf = 0;
   let articlePickups = 0, quizScore = 0, finalPhase = 0, studyToastT = 0;
   let quizState = null;
+  let progress = loadProgress();
+  let activeMicro = null, nextMicroAt = 28, nextCaseAt = 120;
+  let codexOpen = false;
   const mastery = new Map();
   const seenSections = new Set();
+  const talkedNpc = new Set();
+
+  function loadProgress(){
+    const base={xp:0, level:1, relics:[], codex:[], casesSolved:0, streak:0, bestRank:RANKS[0]};
+    if(!FEATURE_FLAGS.progression) return base;
+    try{
+      if(typeof localStorage==='undefined') return base;
+      const raw=localStorage.getItem(STORAGE_KEY);
+      return raw ? Object.assign(base, JSON.parse(raw)) : base;
+    }catch(e){ return base; }
+  }
+  function saveProgress(){
+    if(!FEATURE_FLAGS.progression) return;
+    try{ if(typeof localStorage!=='undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }catch(e){}
+  }
+  function rankName(){
+    return RANKS[Math.min(RANKS.length-1, Math.floor((progress.level-1)/2))];
+  }
+  function awardXp(amount, reason){
+    if(!FEATURE_FLAGS.progression) return;
+    const relicBonus = progress.relics.includes('art434') && /ejecut/i.test(reason||'') ? 1.15 : 1;
+    progress.xp += Math.max(1, Math.round(amount*relicBonus));
+    const next = progress.level*180;
+    if(progress.xp>=next){
+      progress.xp-=next; progress.level++;
+      progress.bestRank=rankName();
+      sfx('1up');
+      showStudy('RANGO: '+rankName()+'. La comision empieza a escucharte.', 170);
+    }
+    saveProgress();
+  }
+  function unlockCodex(id){
+    if(!FEATURE_FLAGS.codex || !id) return;
+    if(!progress.codex.includes(id)) progress.codex.push(id);
+    saveProgress();
+  }
+  function awardRelic(id){
+    if(!FEATURE_FLAGS.relics || !id || progress.relics.includes(id)) return;
+    const relic=RELICS.find(r=>r.id===id); if(!relic) return;
+    progress.relics.push(id); unlockCodex(id); saveProgress();
+    score+=350; awardXp(80, relic.name);
+    showStudy('RELIQUIA '+relic.rarity+': '+relic.name+' - '+relic.bonus, 190);
+    addFloat(player.x+PW/2, player.y-16, relic.rarity, '#7fdcff');
+    for(let i=0;i<14;i++) particles.push(burst(player.x+PW/2, player.y+PH/2, '#7fdcff'));
+  }
+  function renderCodex(){
+    const body=document.getElementById('codex-body');
+    const relicRows = progress.relics.map(id=>RELICS.find(r=>r.id===id)).filter(Boolean).slice(-5);
+    const articleRows = progress.codex.filter(id=>!RELICS.some(r=>r.id===id)).slice(-4);
+    let html='<div class="codex-row"><span>Rango</span><span class="rare">'+rankName()+'</span></div>';
+    html+='<div class="codex-row"><span>Nivel</span><span class="rare">'+progress.level+'</span></div>';
+    if(relicRows.length===0 && articleRows.length===0) html+='<div>Aun no hay reliquias. Juega y desbloquea.</div>';
+    for(const r of relicRows) html+='<div class="codex-row"><span>'+r.name+'</span><span class="rare">'+r.rarity+'</span></div>';
+    for(const a of articleRows) html+='<div class="codex-row"><span>'+a+'</span><span class="rare">ART</span></div>';
+    body.innerHTML=html;
+  }
+  function toggleCodex(){
+    if(!FEATURE_FLAGS.codex) return;
+    codexOpen=!codexOpen;
+    renderCodex();
+    document.getElementById('codex-panel').classList.toggle('hidden', !codexOpen);
+  }
 
   function clampCam(){
     cameraX = Math.max(0, Math.min(player.x + PW/2 - VIEW_W/2, LEVEL_PX - VIEW_W));
@@ -511,6 +629,8 @@
     placePlayer(); particles=[]; floats=[]; projs=[];
     score=0; coinCount=0; lives=3; timer=TIME_START; player.invul=40;
     articlePickups=0; quizScore=0; finalPhase=0; quizState=null; mastery.clear(); seenSections.clear();
+    activeMicro=null; nextMicroAt=28; nextCaseAt=120; talkedNpc.clear();
+    codexOpen=false; document.getElementById('codex-panel').classList.add('hidden');
     hideQuickQuiz(); showStudy('Ciudad del Grado: junta artículos, responde al vuelo y llega a la Comisión.', 180);
     clampCam(); state='playing'; ensureAudio(); sfx('start');
   }
@@ -573,24 +693,90 @@
       showStudy(section.name+': '+section.tip, 180);
     }
   }
+  function nearestNpc(){
+    if(!FEATURE_FLAGS.npcMissions) return null;
+    for(const npc of NPCS){
+      const nx=npc.c*TILE+TILE/2, ny=npc.r*TILE;
+      const dx=Math.abs((player.x+PW/2)-nx), dy=Math.abs((player.y+PH)-ny);
+      if(dx<54 && dy<70) return npc;
+    }
+    return null;
+  }
+  function interactNpc(){
+    const npc=nearestNpc(); if(!npc) return;
+    const first=!talkedNpc.has(npc.name);
+    talkedNpc.add(npc.name);
+    showStudy(npc.name+': '+npc.line, 210);
+    addFloat(npc.c*TILE+TILE/2, npc.r*TILE-20, npc.mission, '#7fdcff');
+    if(first){
+      awardXp(35, npc.name);
+      if(npc.relic) awardRelic(npc.relic);
+    }
+  }
   function onArticleCollected(law,x,y){
     if(!law) return;
     articlePickups++;
     mastery.set(law.short, (mastery.get(law.short)||0)+1);
+    unlockCodex(law.short);
+    awardXp(18, law.short);
+    advanceMicro('article');
     addFloat(x+COIN/2, y-10, law.short, '#ffd23f');
     showStudy(law.short+' · '+law.title+': '+law.tip, 170);
     if(articlePickups%5===0) openQuickQuiz();
   }
   function onDoctrineDefeated(e){
     const topic=e.topic||'Duda doctrinal';
+    awardXp(32, topic);
+    advanceMicro('enemy');
     showStudy('Caso resuelto: '+topic+'. La argumentación precisa reduce la incertidumbre.', 150);
     if(articlePickups>0 && articlePickups%7===0) openQuickQuiz();
+  }
+  function startMicroEvent(){
+    if(!FEATURE_FLAGS.microEvents || activeMicro || state!=='playing') return;
+    const ev=MICRO_EVENTS[(tick + articlePickups + quizScore) % MICRO_EVENTS.length];
+    activeMicro=Object.assign({count:0}, ev);
+    showStudy(ev.name+': '+ev.goal, 170);
+  }
+  function advanceMicro(kind){
+    if(!activeMicro || activeMicro.kind!==kind) return;
+    activeMicro.count++;
+    if(activeMicro.count>=activeMicro.target){
+      score+=500; awardXp(70, activeMicro.name);
+      showStudy('MICROEVENTO COMPLETO: '+activeMicro.name+' +XP', 160);
+      addFloat(player.x+PW/2, player.y-18, '+XP', '#7fdcff');
+      activeMicro=null;
+      nextMicroAt=(TIME_START-timer)+45;
+    }
+  }
+  function updateMicroEvents(){
+    if(!FEATURE_FLAGS.microEvents || state!=='playing') return;
+    const elapsed=TIME_START-timer;
+    if(!activeMicro && elapsed>=nextMicroAt) startMicroEvent();
+    if(activeMicro){
+      activeMicro.ttl--;
+      if(activeMicro.ttl<=0){
+        showStudy('Microevento fallido: sigue avanzando.', 110);
+        activeMicro=null;
+        nextMicroAt=elapsed+42;
+      }
+    }
+  }
+  function maybeOpenLegalCase(){
+    if(!FEATURE_FLAGS.legalCases || quizState || state!=='playing') return;
+    const elapsed=TIME_START-timer;
+    if(elapsed>=nextCaseAt){
+      const q=LEGAL_CASES[(quizScore+articlePickups)%LEGAL_CASES.length];
+      nextCaseAt=elapsed+115+Math.floor(Math.random()*45);
+      openQuickQuiz(q, {case:true, pause:true});
+    }
   }
   function hideQuickQuiz(){
     document.getElementById('quick-quiz').classList.add('hidden');
     quizState=null;
   }
   function renderQuiz(q){
+    const kicker=document.getElementById('quiz-kicker');
+    if(kicker) kicker.textContent = quizState && quizState.case ? 'CASO JURIDICO' : (quizState && quizState.final ? 'EXAMEN ORAL' : 'INTERROGACION RELAMPAGO');
     document.getElementById('quiz-question').textContent=q.topic+': '+q.q;
     const box=document.getElementById('quiz-options');
     box.innerHTML='';
@@ -606,7 +792,7 @@
   function openQuickQuiz(q, opts){
     if(quizState || state==='paused' || state==='over' || state==='win') return;
     const question=q || QUICK_QUESTIONS[(articlePickups+quizScore+tick)%QUICK_QUESTIONS.length];
-    quizState={q:question, final:!!(opts&&opts.final), ttl:(opts&&opts.final)?999999:540};
+    quizState={q:question, final:!!(opts&&opts.final), case:!!(opts&&opts.case), pause:!!(opts&&opts.pause), ttl:(opts&&opts.final)?999999:540};
     renderQuiz(question);
   }
   function finalMistake(){
@@ -624,10 +810,19 @@
     const q=quizState.q, correct=idx===q.answer;
     if(correct){
       quizScore++;
+      progress.streak++;
+      if(quizState.case) progress.casesSolved++;
       score += quizState.final ? 800 : 250;
+      awardXp(quizState.final ? 110 : (quizState.case ? 85 : 45), q.topic);
+      advanceMicro('quiz');
+      if((quizScore===2 || progress.streak%4===0) && FEATURE_FLAGS.relics){
+        const relic=RELICS[(quizScore+progress.level)%RELICS.length];
+        awardRelic(relic.id);
+      }
       sfx('gem');
       showStudy(q.ok, quizState.final ? 170 : 140);
     } else {
+      progress.streak=0; saveProgress();
       score=Math.max(0, score-120);
       showStudy('Respuesta débil: revisa la regla y conserva la calma oral.', 150);
       if(quizState.final) finalMistake();
@@ -707,6 +902,8 @@
     else if(k==='Digit1'||k==='Numpad1'){ answerQuiz(0); }
     else if(k==='Digit2'||k==='Numpad2'){ answerQuiz(1); }
     else if(k==='Digit3'||k==='Numpad3'){ answerQuiz(2); }
+    else if(k==='KeyE'){ interactNpc(); }
+    else if(k==='KeyC'){ toggleCodex(); }
     // menu confirm
     if(k==='Space'||k==='Enter'){
       if(state==='title') newGame();
@@ -769,6 +966,8 @@
       'Mérito&nbsp;&nbsp;<span class="v">'+pad(score)+'</span><br>'+
       'Artículos activos&nbsp;&nbsp;<span class="v">'+coinCount+'</span><br>'+
       'Dominio oral&nbsp;&nbsp;<span class="v">'+quizScore+'</span><br>'+
+      'Rango&nbsp;&nbsp;<span class="v">'+rankName()+'</span><br>'+
+      'Reliquias&nbsp;&nbsp;<span class="v">'+progress.relics.length+'</span><br>'+
       'Instituciones vistas&nbsp;&nbsp;<span class="v">'+masteryCount+'</span><br>'+
       'Bono de tiempo&nbsp;&nbsp;<span class="v">+'+bonus+'</span><br>'+
       'Mejor preparación&nbsp;&nbsp;<span class="v">'+pad(best)+'</span>';
@@ -778,6 +977,7 @@
       'Mérito&nbsp;&nbsp;<span class="v">'+pad(score)+'</span><br>'+
       'Artículos retenidos&nbsp;&nbsp;<span class="v">'+coinCount+'</span><br>'+
       'Respuestas sólidas&nbsp;&nbsp;<span class="v">'+quizScore+'</span><br>'+
+      'Rango&nbsp;&nbsp;<span class="v">'+rankName()+'</span><br>'+
       'Mejor preparación&nbsp;&nbsp;<span class="v">'+pad(best)+'</span>';
   }
   const pad = n => ('000000'+Math.floor(n)).slice(-6);
@@ -895,9 +1095,9 @@
       if(it.collected) continue;
       if(overlap(player,{x:it.x,y:it.y,w:ITEM,h:ITEM})){
         it.collected=true;
-        if(it.type==='gem'){ score+=500; sfx('gem'); addFloat(it.x,it.y-6,'DOCTRINA','#7fdcff'); showStudy('Doctrina desbloqueada: conecta regla, excepción y consecuencia.', 150); for(let i=0;i<12;i++) particles.push(burst(it.x+ITEM/2,it.y+ITEM/2,'#7fdcff')); }
+        if(it.type==='gem'){ score+=500; sfx('gem'); awardXp(55,'Doctrina'); if(FEATURE_FLAGS.relics) awardRelic(RELICS[(articlePickups+quizScore)%RELICS.length].id); addFloat(it.x,it.y-6,'DOCTRINA','#7fdcff'); showStudy('Doctrina desbloqueada: conecta regla, excepción y consecuencia.', 150); for(let i=0;i<12;i++) particles.push(burst(it.x+ITEM/2,it.y+ITEM/2,'#7fdcff')); }
         else if(it.type==='1up'){ lives++; sfx('1up'); addFloat(it.x,it.y-6,'CÁTEDRA','#67d96b'); showStudy('Cátedra recuperada: ganas un intento para la comisión.', 150); for(let i=0;i<10;i++) particles.push(burst(it.x+ITEM/2,it.y+ITEM/2,'#67d96b')); }
-        else if(it.type==='star'){ player.star=STAR_TIME; sfx('power'); addFloat(it.x,it.y-10,'JURISPRUDENCIA','#ffe06a'); showStudy('Jurisprudencia activa: tus argumentos atraviesan dudas por unos segundos.', 150); for(let i=0;i<16;i++) particles.push(burst(it.x+ITEM/2,it.y+ITEM/2,'#ffe06a')); }
+        else if(it.type==='star'){ player.star=STAR_TIME; sfx('power'); awardXp(45,'Jurisprudencia'); addFloat(it.x,it.y-10,'JURISPRUDENCIA','#ffe06a'); showStudy('Jurisprudencia activa: tus argumentos atraviesan dudas por unos segundos.', 150); for(let i=0;i<16;i++) particles.push(burst(it.x+ITEM/2,it.y+ITEM/2,'#ffe06a')); }
       }
     }
 
@@ -1025,11 +1225,14 @@
     updateStudyToast();
     updateQuiz();
     if(state==='playing'){
+      if(quizState && quizState.pause){ updateParticles(); return; }
       updatePlayer();
       if(state!=='playing') return; // state may have changed (death/clear)
       for(const e of enemies) updateEnemy(e);
       updateProjs();
       updateParticles();
+      updateMicroEvents();
+      maybeOpenLegalCase();
       timer -= 1/60;
       if(timer<=0){ timer=0; loseLife(); }
     } else if(state==='finalExam'){
@@ -1211,6 +1414,27 @@
     ctx.textAlign='left';
     blitAnchor('flag', baseX+6, groundTop+2, k, false);
   }
+  function drawNPCs(c0,c1){
+    if(!FEATURE_FLAGS.npcMissions) return;
+    const near=nearestNpc();
+    ctx.save();
+    for(const npc of NPCS){
+      if(npc.c<c0-2 || npc.c>c1+2) continue;
+      const x=npc.c*TILE+TILE/2, y=npc.r*TILE;
+      const bob=Math.sin(tick*0.08+npc.c)*2;
+      const name=npc.sprite||'amulet';
+      const fr=FRAMES[name]; if(fr) blitAnchor(name, x, y+bob, 0.54, false);
+      ctx.font='7px "Press Start 2P", monospace'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(0,0,0,.62)'; ctx.fillText(npc.name, x+1, y-48+bob+1);
+      ctx.fillStyle='#fff4d6'; ctx.fillText(npc.name, x, y-48+bob);
+      if(near===npc){
+        ctx.fillStyle='rgba(255,210,63,.92)';
+        ctx.fillText('E', x, y-66+bob);
+      }
+    }
+    ctx.textAlign='left';
+    ctx.restore();
+  }
   function drawExamBoss(){
     const names=['Profesora Civil','Profesor Procesal','Profesora Constitucional'];
     const phase=Math.min(finalPhase, names.length-1);
@@ -1278,6 +1502,8 @@
     for(const c of coins) drawCoin(c);
     // items
     for(const it of items) drawItem(it);
+    // NPCs
+    drawNPCs(c0,c1);
     // enemies
     for(const e of enemies) drawEnemy(e);
     // projectiles
@@ -1320,6 +1546,7 @@
     // time
     label('ORAL '+('0'+quizScore).slice(-2), 420);
     label('T '+('00'+Math.ceil(timer)).slice(-3), 545);
+    if(FEATURE_FLAGS.progression) label('LV '+progress.level, 640);
     // HP hearts (right) + lives counter
     const HS=24, gap=3;
     const hpW=player.maxHp*(HS+gap)-gap, hx0=VIEW_W-14-hpW;
@@ -1335,6 +1562,15 @@
     ctx.font='14px "Press Start 2P", monospace';
     ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillText('x'+lives, lvx+14+2, 20+2);
     ctx.fillStyle='#fff4d6'; ctx.fillText('x'+lives, lvx+14, 20);
+    if(activeMicro){
+      const left=Math.ceil(activeMicro.ttl/60);
+      ctx.font='9px "Press Start 2P", monospace'; ctx.textAlign='center';
+      const msg=activeMicro.name+' '+activeMicro.count+'/'+activeMicro.target+' '+left+'s';
+      ctx.fillStyle='rgba(20,14,40,.74)'; rr(250,42,460,26,8); ctx.fill();
+      ctx.strokeStyle='rgba(127,220,255,.72)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#7fdcff'; ctx.fillText(msg, 480, 56);
+      ctx.textAlign='left';
+    }
     ctx.textBaseline='alphabetic';
   }
 
