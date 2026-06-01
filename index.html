@@ -164,6 +164,12 @@
     box-shadow:0 14px 32px rgba(0,0,0,.48), inset 0 0 0 1px rgba(255,255,255,.05);
   }
   #quick-quiz.hidden{ display:none; }
+  #quick-quiz.gate-mode{
+    top:58px; bottom:auto; width:min(820px, calc(100% - 28px));
+    border-color:#7fdcff; padding:10px 12px;
+  }
+  #quick-quiz.gate-mode #quiz-question{ font-size:14px; margin-bottom:7px; }
+  #quick-quiz.gate-mode .quiz-option{ min-height:34px; padding:6px 8px; }
   #codex-panel{
     position:absolute; right:14px; bottom:18px; z-index:9; width:min(330px, calc(100% - 28px));
     color:#fff4d6; background:linear-gradient(180deg, rgba(37,26,65,.94), rgba(18,12,36,.94));
@@ -202,6 +208,7 @@
     #article-title{ font-size:14px; }
     #article-tip{ font-size:12px; }
     #quick-quiz{ bottom:10px; padding:10px; }
+    #quick-quiz.gate-mode{ top:46px; bottom:auto; }
     #codex-panel{ left:10px; right:10px; bottom:10px; width:auto; }
     #quiz-question{ font-size:13px; }
     #quiz-options{ grid-template-columns:1fr; gap:6px; }
@@ -773,6 +780,9 @@
     document.getElementById('codex-panel').classList.toggle('hidden', !codexOpen);
   }
 
+  function clampValue(v,min,max){
+    return Math.max(min, Math.min(v, max));
+  }
   function clampCam(){
     cameraX = Math.max(0, Math.min(player.x + PW/2 - VIEW_W/2, LEVEL_PX - VIEW_W));
   }
@@ -986,12 +996,67 @@
     }
   }
   function hideQuickQuiz(){
-    document.getElementById('quick-quiz').classList.add('hidden');
+    const panel=document.getElementById('quick-quiz');
+    panel.classList.add('hidden');
+    panel.classList.remove('gate-mode');
     quizState=null;
   }
+  function findQuizFloorY(worldX, preferredY){
+    const baseC=Math.floor(worldX/TILE);
+    const startR=Math.max(1, Math.floor((preferredY || player.y+player.h)/TILE)-1);
+    for(let radius=0; radius<=8; radius++){
+      const cols = radius===0 ? [baseC] : [baseC-radius, baseC+radius];
+      for(const c of cols){
+        if(c<0 || c>=LW) continue;
+        for(let r=startR; r<LH; r++){
+          if(isSolid(c,r) && !isSolid(c,r-1)) return clampValue(r*TILE, 176, GROUND_ROW*TILE);
+        }
+      }
+    }
+    return GROUND_ROW*TILE;
+  }
+  function setupQuizGates(question){
+    if(!quizState) return;
+    const count=question.options.length;
+    const gateW=count>3 ? 124 : 142;
+    const gateH=78;
+    const spacing=count>3 ? 142 : 168;
+    const visibleCenter=clampValue(player.x+PW/2, cameraX+VIEW_W*0.28, cameraX+VIEW_W*0.72);
+    let firstX=visibleCenter - spacing*(count-1)/2;
+    firstX=clampValue(firstX, 70, LEVEL_PX-70-spacing*(count-1));
+    const floorY=findQuizFloorY(visibleCenter, player.y+player.h);
+    const platformX=firstX-gateW/2-56;
+    const platformW=spacing*(count-1)+gateW+112;
+    quizState.platform={x:platformX, y:floorY, w:platformW, h:12};
+    quizState.gates=question.options.map((opt,i)=>({
+      idx:i,
+      x:firstX+i*spacing-gateW/2,
+      y:floorY-gateH-10,
+      w:gateW,
+      h:gateH,
+      label:opt
+    }));
+    quizState.gateArmed=false;
+    if(player.x+player.w<platformX+12 || player.x>platformX+platformW-12 || player.y+player.h>floorY+28){
+      player.x=clampValue(visibleCenter-PW/2, platformX+18, platformX+platformW-PW-18);
+      player.y=floorY-PH;
+      player.vx=0; player.vy=0; player.onGround=true;
+      clampCam();
+    }
+    const body={x:player.x, y:player.y, w:player.w, h:player.h};
+    const touched=quizState.gates.find(g=>overlap(body,g));
+    if(touched){
+      player.x=clampValue(touched.x-player.w-10, platformX+8, platformX+platformW-player.w-8);
+      player.vx=0;
+    }
+    quizState.gateArmed=true;
+    showStudy('Audiencia relampago: toca con el personaje la respuesta correcta. Reloj y enemigos pausados.', 170);
+  }
   function renderQuiz(q){
+    const panel=document.getElementById('quick-quiz');
+    const gateMode=quizState && quizState.mode==='gates';
     const kicker=document.getElementById('quiz-kicker');
-    if(kicker) kicker.textContent = quizState && quizState.case ? 'CASO JURIDICO' : (quizState && quizState.final ? 'EXAMEN ORAL' : 'INTERROGACION RELAMPAGO');
+    if(kicker) kicker.textContent = gateMode ? (quizState && quizState.case ? 'CASO JURIDICO: TOCA UNA RESPUESTA' : 'AUDIENCIA RELAMPAGO: TOCA UNA RESPUESTA') : (quizState && quizState.case ? 'CASO JURIDICO' : (quizState && quizState.final ? 'EXAMEN ORAL' : 'INTERROGACION RELAMPAGO'));
     document.getElementById('quiz-question').textContent=q.topic+': '+q.q;
     const box=document.getElementById('quiz-options');
     box.innerHTML='';
@@ -1002,12 +1067,25 @@
       btn.onclick=()=>answerQuiz(i);
       box.appendChild(btn);
     });
-    document.getElementById('quick-quiz').classList.remove('hidden');
+    panel.classList.toggle('gate-mode', !!gateMode);
+    panel.classList.remove('hidden');
   }
   function openQuickQuiz(q, opts){
     if(quizState || state==='paused' || state==='over' || state==='win') return;
     const question=q || QUICK_QUESTIONS[(articlePickups+quizScore+tick)%QUICK_QUESTIONS.length];
-    quizState={q:question, final:!!(opts&&opts.final), case:!!(opts&&opts.case), pause:!!(opts&&opts.pause), ttl:(opts&&opts.final)?999999:540};
+    const isFinal=!!(opts&&opts.final);
+    quizState={
+      q:question,
+      final:isFinal,
+      case:!!(opts&&opts.case),
+      mode:isFinal ? 'oral' : 'gates',
+      pause:!isFinal,
+      ttl:isFinal ? 999999 : 0,
+      gates:null,
+      platform:null,
+      gateArmed:false
+    };
+    if(quizState.mode==='gates') setupQuizGates(question);
     renderQuiz(question);
   }
   function finalMistake(){
@@ -1023,6 +1101,8 @@
   function answerQuiz(idx){
     if(!quizState) return;
     const q=quizState.q, correct=idx===q.answer;
+    const wasFinal=quizState.final;
+    const wasGate=quizState.mode==='gates';
     if(correct){
       quizScore++;
       progress.streak++;
@@ -1041,9 +1121,17 @@
       score=Math.max(0, score-120);
       showStudy('Respuesta débil: revisa la regla y conserva la calma oral.', 150);
       if(quizState.final) finalMistake();
+      else if(wasGate){
+        player.hurtT=18; player.invul=Math.max(player.invul, 24); player.vy=Math.min(player.vy, -3.5);
+        sfx('hurt');
+        addFloat(player.x+PW/2, player.y-8, 'REPASA', '#ff7a8a');
+      }
       else if(state==='playing') damage(player.x+PW/2+(player.facing>0?24:-24));
     }
-    const wasFinal=quizState.final;
+    if(wasGate){
+      player.vx=0;
+      jumpBuf=0;
+    }
     hideQuickQuiz();
     if(wasFinal && state==='finalExam'){
       finalPhase++;
@@ -1056,7 +1144,21 @@
   }
   function updateQuiz(){
     if(!quizState) return;
+    if(quizState.mode==='gates') return;
     if(!quizState.final && --quizState.ttl<=0) hideQuickQuiz();
+  }
+  function updateQuizGates(){
+    if(!quizState || quizState.mode!=='gates' || !quizState.gates) return;
+    const body={x:player.x-2, y:player.y, w:player.w+4, h:player.h};
+    let touched=null;
+    for(const gate of quizState.gates){
+      if(overlap(body, gate)){ touched=gate; break; }
+    }
+    if(!quizState.gateArmed){
+      if(!touched) quizState.gateArmed=true;
+      return;
+    }
+    if(touched) answerQuiz(touched.idx);
   }
   function startFinalExam(){
     if(state!=='playing') return;
@@ -1226,7 +1328,8 @@
   }
 
   // ---------- update ----------
-  function updatePlayer(){
+  function updatePlayer(opts){
+    const quizMode=!!(opts&&opts.quizMode);
     // horizontal input
     const maxS = keys.run ? RUN_MAX : WALK_MAX;
     const acc  = keys.run ? RUN_ACCEL : WALK_ACCEL;
@@ -1276,9 +1379,21 @@
         if(wasAir && player.vy>6){ player.landSquash=1; for(let i=0;i<4;i++) particles.push(dust(player.x+PW/2, player.y+PH)); }
       } else if(player.vy<0){
         player.y = Math.max.apply(null,v.map(o=>o.top+TILE));
-        for(const o of v){ if(getType(o.c,o.r)==='block') bumpBlock(o.c,o.r); }
+        if(!quizMode){
+          for(const o of v){ if(getType(o.c,o.r)==='block') bumpBlock(o.c,o.r); }
+        }
       }
       player.vy=0;
+    }
+    if(quizMode && quizState && quizState.platform){
+      const p=quizState.platform;
+      const prevBottom=player.y+player.h-player.vy;
+      const bottom=player.y+player.h;
+      if(player.vy>=0 && player.x+player.w>p.x && player.x<p.x+p.w && prevBottom<=p.y+10 && bottom>=p.y){
+        player.y=p.y-player.h;
+        player.vy=0;
+        player.onGround=true;
+      }
     }
 
     // run animation + squash
@@ -1293,6 +1408,19 @@
     if(player.star>0) player.star--;
     if(player.hurtT>0) player.hurtT--;
     if(player.shootCD>0) player.shootCD--;
+    if(quizMode){
+      if(quizState && quizState.platform){
+        const p=quizState.platform;
+        player.x=clampValue(player.x, p.x+8, p.x+p.w-player.w-8);
+        if(player.y>p.y+70){
+          player.y=p.y-PH;
+          player.vy=0;
+          player.onGround=true;
+        }
+      }
+      clampCam();
+      return;
+    }
     watchSection();
     watchNearestArticle();
 
@@ -1414,7 +1542,7 @@
   }
 
   function shoot(){
-    if(state!=='playing' || player.shootCD>0 || projs.length>=PROJ_MAX) return;
+    if(state!=='playing' || (quizState && quizState.mode==='gates') || player.shootCD>0 || projs.length>=PROJ_MAX) return;
     const dir = player.facing<0 ? -1 : 1;
     projs.push({ x: player.x+PW/2 + dir*12, y: player.y+PH*0.42, vx: dir*PROJ_SPEED, vy:0, life:PROJ_LIFE, spin:0 });
     player.shootCD=PROJ_COOLDOWN; sfx('shoot');
@@ -1443,7 +1571,12 @@
     updateArticlePanel();
     updateQuiz();
     if(state==='playing'){
-      if(quizState && quizState.pause){ updateParticles(); return; }
+      if(quizState && quizState.mode==='gates'){
+        updatePlayer({quizMode:true});
+        updateQuizGates();
+        updateParticles();
+        return;
+      }
       updatePlayer();
       if(state!=='playing') return; // state may have changed (death/clear)
       for(const e of enemies) updateEnemy(e);
@@ -1748,6 +1881,49 @@
     ctx.restore();
   }
 
+  function drawQuizGates(){
+    if(!quizState || quizState.mode!=='gates' || !quizState.gates) return;
+    const p=quizState.platform;
+    ctx.save();
+    if(p){
+      ctx.fillStyle='rgba(15,10,28,.92)';
+      rr(p.x, p.y-6, p.w, 18, 8); ctx.fill();
+      ctx.strokeStyle='rgba(127,220,255,.75)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='rgba(255,210,63,.26)';
+      for(let x=p.x+10; x<p.x+p.w-10; x+=28) ctx.fillRect(x, p.y+1, 14, 4);
+      ctx.font='8px "Press Start 2P", monospace'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(0,0,0,.62)'; ctx.fillText('RELOJ PAUSADO - ELIGE TOCANDO', p.x+p.w/2+1, p.y-18+1);
+      ctx.fillStyle='#7fdcff'; ctx.fillText('RELOJ PAUSADO - ELIGE TOCANDO', p.x+p.w/2, p.y-18);
+    }
+    for(const gate of quizState.gates){
+      const pulse=1+Math.sin(tick*0.12+gate.idx)*0.035;
+      const cx=gate.x+gate.w/2, cy=gate.y+gate.h/2;
+      ctx.save();
+      ctx.translate(cx, cy); ctx.scale(pulse, pulse); ctx.translate(-cx, -cy);
+      ctx.fillStyle='rgba(18,12,36,.96)';
+      rr(gate.x, gate.y, gate.w, gate.h, 9); ctx.fill();
+      ctx.strokeStyle=gate.idx%2 ? '#ffd23f' : '#7fdcff'; ctx.lineWidth=3; ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.lineWidth=1; ctx.strokeRect(gate.x+8, gate.y+8, gate.w-16, gate.h-16);
+      ctx.fillStyle='rgba(255,210,63,.18)';
+      rr(gate.x+12, gate.y+11, gate.w-24, 20, 6); ctx.fill();
+      ctx.font='14px "Press Start 2P", monospace'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(0,0,0,.65)'; ctx.fillText(String(gate.idx+1), cx+1, gate.y+27+1);
+      ctx.fillStyle='#ffd23f'; ctx.fillText(String(gate.idx+1), cx, gate.y+27);
+      ctx.font='7px "Press Start 2P", monospace';
+      const a=shortCanvasLabel(gate.label, 16);
+      const b=gate.label.length>16 ? shortCanvasLabel(gate.label.slice(16), 15) : '';
+      ctx.fillStyle='rgba(0,0,0,.62)';
+      ctx.fillText(a, cx+1, gate.y+49+1);
+      if(b) ctx.fillText(b, cx+1, gate.y+62+1);
+      ctx.fillStyle='#fff4d6';
+      ctx.fillText(a, cx, gate.y+49);
+      if(b) ctx.fillText(b, cx, gate.y+62);
+      ctx.restore();
+    }
+    ctx.textAlign='left';
+    ctx.restore();
+  }
+
   function drawWorld(){
     ctx.save();
     ctx.translate(-Math.round(cameraX),0);
@@ -1768,6 +1944,7 @@
     for(let r=0;r<LH;r++) for(let c=c0;c<=c1;c++){ if(c>=0&&c<LW&&isSolid(c,r)) drawTile(c,r); }
     drawWorldLabels(c0,c1);
     drawLegalProps(c0,c1);
+    drawQuizGates();
     // spikes
     for(const s of spikes) drawSpike(s);
     // goal
