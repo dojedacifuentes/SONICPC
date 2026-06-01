@@ -395,11 +395,23 @@
     {topic:'Caso 5', q:'El ejecutado alega deuda extinguida. Donde pelea esa defensa?', options:['Excepciones','Notificacion','Remate'], answer:0, ok:'La extincion se opone como excepcion del ejecutado.'},
     {topic:'Caso 6', q:'El tribunal no es competente. Que defensa conviene detectar temprano?', options:['Incompetencia','Subasta','Tasacion'], answer:0, ok:'La competencia sostiene la validez del procedimiento.'},
     {topic:'Caso 7', q:'El bien ya esta embargado. Quien debe custodiarlo con responsabilidad?', options:['Depositario','Relator','Ministro'], answer:0, ok:'El depositario conserva el bien afecto al procedimiento.'},
-    {topic:'Caso 8', q:'Antes del remate debes saber cuanto vale el bien. Que paso falta?', options:['Tasacion','Apelacion','Amparo'], answer:0, ok:'La tasacion prepara una venta judicial informada.'}
+    {topic:'Caso 8', q:'Antes del remate debes saber cuanto vale el bien. Que paso falta?', options:['Tasacion','Apelacion','Amparo'], answer:0, ok:'La tasacion prepara una venta judicial informada.'},
+    {topic:'Caso 9', q:'Ya hay sentencia firme y pides cumplimiento ante el mismo tribunal dentro de un ano. Que ruta es?', options:['Ejecucion incidental','Juicio sumario','Nuevo ordinario'], answer:0, ok:'Ejecucion incidental: cumplimiento de sentencia, no nuevo juicio declarativo.'},
+    {topic:'Caso 10', q:'La ley ordena tramitacion rapida y concentrada en audiencia. Que procedimiento aparece?', options:['Sumario','Ejecutivo','Casacion'], answer:0, ok:'El sumario concentra actos y parte con audiencia al quinto dia habil.'},
+    {topic:'Caso 11', q:'En ejecutivo el demandado quiere defenderse. Que hace tecnicamente?', options:['Opone excepciones','Contesta demanda ordinaria','Pide conciliacion obligatoria'], answer:0, ok:'En ejecutivo no contesta como ordinario: opone excepciones taxativas.'},
+    {topic:'Caso 12', q:'Oponerse al ejecutivo detiene automaticamente el cuaderno de apremio?', options:['No','Si, siempre','Solo por secreto'], answer:0, ok:'Trampa clasica: la oposicion no suspende automaticamente el apremio.'}
   ];
 
   const LAW_ARTICLES = [
     {short:'Art. 434 CPC', title:'Titulo ejecutivo', tip:'La ejecucion nace de un titulo suficiente.'},
+    {short:'Art. 3 CPC', title:'Ordinario supletorio', tip:'El ordinario llena vacios cuando no hay regla especial.'},
+    {short:'Arts. 231-235 CPC', title:'Ejecucion incidental', tip:'Cumple sentencia ante el tribunal que la dicto.'},
+    {short:'Art. 233 CPC', title:'Plazo incidental', tip:'Pide cumplimiento dentro de un ano desde exigibilidad.'},
+    {short:'Art. 253 CPC', title:'Inicio ordinario', tip:'El juicio ordinario comienza por demanda.'},
+    {short:'Art. 254 CPC', title:'Requisitos demanda', tip:'Tribunal, partes, hechos, derecho y peticiones.'},
+    {short:'Art. 259 CPC', title:'Emplazamiento', tip:'El plazo ordinario base se ajusta por territorio y tabla.'},
+    {short:'Art. 262 CPC', title:'Conciliacion', tip:'En ordinario es tramite relevante; en ejecutivo no obligatoria.'},
+    {short:'Arts. 273-289 CPC', title:'Prejudiciales', tip:'Preparan el juicio cuando se justifica anticipar medidas.'},
     {short:'CPC: Liquidez', title:'Deuda liquida', tip:'La deuda debe ser clara o calculable para cobrar rapido.'},
     {short:'CPC: Exigible', title:'Obligacion exigible', tip:'No basta deber: debe poder exigirse ahora.'},
     {short:'CPC: Mandamiento', title:'Mandamiento ejecutivo', tip:'Ordena requerir pago y avanzar al embargo.'},
@@ -408,8 +420,26 @@
     {short:'CPC: Depositario', title:'Custodia de bienes', tip:'El bien embargado queda bajo cuidado responsable.'},
     {short:'CPC: Tasacion', title:'Valoracion previa', tip:'Antes de vender, el procedimiento necesita precio base.'},
     {short:'CPC: Remate', title:'Venta judicial', tip:'El remate transforma bienes en pago.'},
-    {short:'Art. 464 CPC', title:'Excepciones', tip:'El ejecutado concentra aqui sus defensas principales.'},
     {short:'Art. 303 CPC', title:'Dilatorias', tip:'Corrigen vicios formales antes del fondo.'},
+    {short:'Art. 307 CPC', title:'Incidente dilatorio', tip:'Las dilatorias se tramitan como incidente.'},
+    {short:'Art. 308 CPC', title:'Contestar despues', tip:'Rechazada o subsanada la dilatoria, corre plazo para contestar.'},
+    {short:'Art. 309 CPC', title:'Contestacion', tip:'Individualiza defensas, fundamentos y peticiones.'},
+    {short:'Arts. 318-320 CPC', title:'Recibir a prueba', tip:'Prueba si hay hechos sustanciales controvertidos.'},
+    {short:'Art. 328 CPC', title:'Probatorio ordinario', tip:'Termino ordinario base de 20 dias.'},
+    {short:'Art. 430 CPC', title:'Observaciones prueba', tip:'En ordinario hay 10 dias para observar.'},
+    {short:'Arts. 432-433 CPC', title:'Oir sentencia', tip:'Cierra fuerte la discusion antes del fallo.'},
+    {short:'Art. 458 CPC', title:'Apremio sigue', tip:'La oposicion no suspende automaticamente el apremio.'},
+    {short:'Arts. 459-461 CPC', title:'Plazo oposicion', tip:'Desde requerimiento, 8 dias utiles si corresponde.'},
+    {short:'Art. 464 CPC', title:'Excepciones ejecutivas', tip:'Defensas taxativas del ejecutado.'},
+    {short:'Art. 465 CPC', title:'Un solo escrito', tip:'Todas las excepciones ejecutivas van juntas.'},
+    {short:'Art. 466 CPC', title:'Traslado y prueba', tip:'Traslado al ejecutante y prueba si hay controversia.'},
+    {short:'Arts. 468-469 CPC', title:'Prueba ejecutiva', tip:'Probatorio de 10 dias y 6 dias para observaciones.'},
+    {short:'Art. 470 CPC', title:'Fallo ejecutivo', tip:'Sentencia dentro de 10 dias desde pleito concluso.'},
+    {short:'Art. 475 CPC', title:'Apelacion y caucion', tip:'Sentencia de pago exige cuidado si se apela.'},
+    {short:'Art. 680 CPC', title:'Sumario procede', tip:'Cuando la ley lo ordena o urge tramitacion rapida.'},
+    {short:'Arts. 682-683 CPC', title:'Audiencia sumaria', tip:'Demanda verbal o escrita y audiencia al quinto dia habil.'},
+    {short:'Arts. 688-691 CPC', title:'Fallo sumario', tip:'Sentencia rapida y recursos con reglas especiales.'},
+    {short:'Arts. 766-770 CPC', title:'Casacion', tip:'Controla forma y fondo segun reglas del recurso.'},
     {short:'Art. 1698 CC', title:'Carga de la prueba', tip:'Prueba quien alega obligacion o extincion.'},
     {short:'Art. 1700 CC', title:'Instrumento publico', tip:'Hace plena fe del otorgamiento y fecha.'},
     {short:'Art. 1545 CC', title:'Fuerza obligatoria', tip:'El contrato valido vincula a las partes.'},
@@ -444,6 +474,12 @@
     {c:132,r:2,text:'TASACION', sub:'PRECIO BASE'},
     {c:151,r:2,text:'REMATE', sub:'PAGO FINAL'}
   ];
+  const PROCEDURE_CARDS = [
+    {name:'Ordinario', tip:'Declarativo y supletorio: demanda, contestacion, prueba, observaciones y sentencia.'},
+    {name:'Sumario', tip:'Declarativo rapido: audiencia al quinto dia habil y actos concentrados.'},
+    {name:'Ejecutivo', tip:'Cobro coactivo con titulo: no se contesta, se oponen excepciones taxativas.'},
+    {name:'Ejecucion incidental', tip:'Cumplimiento de sentencia ante el mismo tribunal, dentro del ano legal.'}
+  ];
   const SECTIONS = [
     {from:0, to:24, name:'Entrada del Tribunal', tip:'Aprende el mapa ejecutivo: titulo, requerimiento, embargo y defensas.'},
     {from:25, to:59, name:'Fabrica de Titulos', tip:'Solo un titulo suficiente abre la ruta rapida del cobro.'},
@@ -475,7 +511,13 @@
     {topic:'Buena fe', q:'En contratos, la buena fe exige...', options:['Lealtad en cumplimiento','Silencio absoluto','Prescripcion inmediata'], answer:0, ok:'Correcto: la conducta debe ser leal y coherente.'},
     {topic:'Perjuicios', q:'Dano emergente y lucro cesante son categorias de...', options:['Perjuicios','Competencia','Notificacion'], answer:0, ok:'Bien: distinguen perdidas directas y ganancias frustradas.'},
     {topic:'Rebeldia', q:'Que significa que el demandado no comparezca?', options:['Rebeldia, no confesion total','Gana automaticamente','Se elimina el juez'], answer:0, ok:'Exacto: la rebeldia no equivale a tener razon sin prueba.'},
-    {topic:'Estrategia', q:'Que respuesta juridica es mas fuerte?', options:['Hecho + norma + peticion','Solo enojo','Solo velocidad'], answer:0, ok:'Bien: argumentar es unir hechos, regla y consecuencia.'}
+    {topic:'Estrategia', q:'Que respuesta juridica es mas fuerte?', options:['Hecho + norma + peticion','Solo enojo','Solo velocidad'], answer:0, ok:'Bien: argumentar es unir hechos, regla y consecuencia.'},
+    {topic:'Ordinario', q:'Que rol cumple el juicio ordinario en el CPC?', options:['Regla supletoria','Via penal','Embargo automatico'], answer:0, ok:'Art. 3 CPC: el ordinario opera como procedimiento supletorio.'},
+    {topic:'Sumario', q:'Cuando se cita a audiencia sumaria?', options:['Quinto dia habil','Veinte dias exactos','Despues del remate'], answer:0, ok:'Art. 683 CPC: audiencia al quinto dia habil desde la ultima notificacion.'},
+    {topic:'Ejecutivo', q:'Si el requerido esta dentro del territorio del tribunal, la oposicion base es de...', options:['8 dias utiles','20 dias','Un ano'], answer:0, ok:'Art. 459 CPC: oposicion breve desde el requerimiento de pago.'},
+    {topic:'Prueba ejecutiva', q:'El termino probatorio ejecutivo ordinario dura...', options:['10 dias','30 dias','5 meses'], answer:0, ok:'Art. 468 CPC: 10 dias, con posible ampliacion legal.'},
+    {topic:'Apremio', q:'La oposicion ejecutiva suspende automaticamente el apremio?', options:['No','Si','Solo si hay testigos'], answer:0, ok:'Art. 458 CPC: no confundas oposicion con suspension automatica.'},
+    {topic:'Incidental', q:'Cumplir una sentencia ante el mismo tribunal dentro del ano es...', options:['Ejecucion incidental','Juicio sumario','Medida prejudicial'], answer:0, ok:'Arts. 231 a 235 CPC: no es nuevo juicio ejecutivo.'}
   ];
   const FINAL_EXAM = [
     {topic:'Fase 1: Titulo', q:'El Ejecutor Supremo exige entrada. Que debes mostrar primero?', options:['Titulo ejecutivo','Recurso de proteccion','Contrato verbal dudoso'], answer:0, ok:'Fase 1 limpia: el titulo sostiene la via ejecutiva.'},
@@ -676,8 +718,11 @@
     const body=document.getElementById('codex-body');
     const relicRows = progress.relics.map(id=>RELICS.find(r=>r.id===id)).filter(Boolean).slice(-5);
     const articleRows = progress.codex.filter(id=>!RELICS.some(r=>r.id===id)).slice(-4);
+    const proc=PROCEDURE_CARDS[(articlePickups+quizScore+progress.level)%PROCEDURE_CARDS.length];
     let html='<div class="codex-row"><span>Rango</span><span class="rare">'+rankName()+'</span></div>';
     html+='<div class="codex-row"><span>Nivel</span><span class="rare">'+progress.level+'</span></div>';
+    html+='<div class="codex-row"><span>Mapa procesal</span><span class="rare">'+proc.name+'</span></div>';
+    html+='<div class="codex-tip">'+proc.tip+'</div>';
     if(relicRows.length===0 && articleRows.length===0) html+='<div>Aun no hay reliquias. Juega y desbloquea.</div>';
     for(const r of relicRows) html+='<div class="codex-row"><span>'+r.name+'</span><span class="rare">'+r.rarity+'</span></div>';
     for(const a of articleRows){
