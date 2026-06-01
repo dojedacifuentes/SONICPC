@@ -141,6 +141,21 @@
     pointer-events:none;
   }
   #study-toast.show{ opacity:1; transform:translateY(0); }
+  #article-panel{
+    position:absolute; left:16px; top:58px; z-index:7; width:min(360px, calc(100% - 32px));
+    color:#fff4d6; background:linear-gradient(180deg, rgba(37,26,65,.90), rgba(18,12,36,.88));
+    border:2px solid rgba(255,180,61,.86); border-radius:12px; padding:10px 12px;
+    box-shadow:0 12px 26px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.06);
+    transform:translateY(-8px); opacity:0; transition:opacity .14s ease, transform .14s ease;
+    pointer-events:none;
+  }
+  #article-panel.show{ opacity:1; transform:translateY(0); }
+  #article-panel.hidden{ display:none; }
+  .article-top{ display:flex; justify-content:space-between; gap:8px; margin-bottom:5px; }
+  .article-top span{ font-family:"Press Start 2P"; font-size:8px; color:#7fdcff; white-space:nowrap; }
+  #article-short{ font-family:"Press Start 2P"; font-size:13px; color:#ffd23f; margin-bottom:5px; }
+  #article-title{ font-weight:900; font-size:17px; line-height:1.05; color:#fff; }
+  #article-tip{ font-weight:800; font-size:14px; line-height:1.12; color:#d8f3ff; margin-top:4px; }
   #quick-quiz{
     position:absolute; left:50%; bottom:18px; transform:translateX(-50%); z-index:9;
     width:min(720px, calc(100% - 28px)); color:#fff4d6;
@@ -162,11 +177,12 @@
   #codex-body .codex-row{ display:flex; justify-content:space-between; gap:8px; border-top:1px solid rgba(255,255,255,.12); padding:6px 0; }
   #codex-body .codex-row:first-child{ border-top:0; }
   #codex-body .rare{ color:#7fdcff; white-space:nowrap; }
+  #codex-body .codex-tip{ color:#d8f3ff; font-size:12px; line-height:1.12; margin:-2px 0 5px; }
   .quiz-kicker{
     font-family:"Press Start 2P"; font-size:9px; color:#7fdcff; margin-bottom:7px;
   }
   #quiz-question{ font-weight:800; font-size:16px; line-height:1.2; margin-bottom:8px; }
-  #quiz-options{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  #quiz-options{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px; }
   .quiz-option{
     border:2px solid #51407f; border-radius:9px; color:#fff4d6; cursor:pointer;
     background:linear-gradient(#3a2c63,#271c45); padding:8px; min-height:42px;
@@ -181,6 +197,10 @@
     .btn{ padding:11px 20px; font-size:13px; }
     .title-sub{ font-size:10px; }
     #study-toast{ font-size:12px; left:10px; bottom:10px; }
+    #article-panel{ left:10px; top:46px; width:auto; padding:9px; }
+    #article-short{ font-size:10px; }
+    #article-title{ font-size:14px; }
+    #article-tip{ font-size:12px; }
     #quick-quiz{ bottom:10px; padding:10px; }
     #codex-panel{ left:10px; right:10px; bottom:10px; width:auto; }
     #quiz-question{ font-size:13px; }
@@ -192,8 +212,8 @@
 <body>
   <div class="wrap">
     <div class="titlebar">
-      <h1>IUS EX MACHINA</h1>
-      <span>— Ciudad del Grado · Civil · Procesal · Constitucional</span>
+      <h1>IUS MACHINA</h1>
+      <span>— Sonic Procesal · Mundo 2: Juicio Ejecutivo</span>
     </div>
 
     <div id="frame">
@@ -208,14 +228,14 @@
 
       <!-- TITLE -->
       <div class="overlay" id="ov-title">
-        <div class="title-logo">IUS EX MACHINA</div>
-        <div class="title-sub">HADES + HOLLOW KNIGHT + EXAMEN DE GRADO</div>
-        <div class="kicker">Cruza la Ciudad del Grado, desbloquea artículos como habilidades y derrota dudas doctrinales con argumentos precisos.</div>
+        <div class="title-logo">IUS MACHINA</div>
+        <div class="title-sub">SONIC PROCESAL · JUICIO EJECUTIVO</div>
+        <div class="kicker">Corre por la fabrica judicial, encuentra titulos ejecutivos y vence al Ejecutor Supremo con argumentos precisos.</div>
         <div class="ctrls">
           <div><b>← →</b> / A D mover · <b>SPACE</b> / ↑ saltar · <b>SHIFT</b> sprint doctrinal</div>
-          <div><b>J / X</b> argumento · <b>1 2 3</b> contestar · <b>E</b> hablar · <b>C</b> codex · <b>P</b> pausa</div>
+          <div><b>J / X</b> argumento · <b>1 2 3/4</b> contestar · <b>E</b> hablar · <b>C</b> codex · <b>P</b> pausa</div>
         </div>
-        <button class="btn" id="btn-start" type="button">Entrar a la ciudad ▶</button>
+        <button class="btn" id="btn-start" type="button">Iniciar juicio ejecutivo ▶</button>
       </div>
 
       <!-- PAUSE -->
@@ -241,6 +261,15 @@
         <button class="btn" id="btn-retry">Volver a estudiar ▶</button>
       </div>
       <div id="study-toast" aria-live="polite"></div>
+      <div id="article-panel" class="hidden" aria-live="polite">
+        <div class="article-top">
+          <span id="article-mode">ARTICULO</span>
+          <span id="article-mastery">DOMINIO 1/5</span>
+        </div>
+        <div id="article-short">Art. 434 CPC</div>
+        <div id="article-title">Titulo ejecutivo</div>
+        <div id="article-tip">Sin titulo ejecutivo no hay ejecucion.</div>
+      </div>
       <div id="quick-quiz" class="hidden" aria-live="polite">
         <div class="quiz-kicker" id="quiz-kicker">Interrogacion relampago</div>
         <div id="quiz-question"></div>
@@ -337,17 +366,21 @@
   const RANKS = ['Postulante', 'Ayudante', 'Litigante', 'Relator', 'Comision Ready'];
   const RELICS = [
     {id:'art434', name:'Art. 434 CPC', rarity:'EPICA', bonus:'+15% XP ejecutivo', tip:'La via ejecutiva exige titulo.'},
-    {id:'art464', name:'Art. 464 CPC', rarity:'RARA', bonus:'+1 respuesta segura', tip:'Excepciones del ejecutado.'},
-    {id:'instpub', name:'Instrumento Publico', rarity:'RARA', bonus:'+10% XP prueba', tip:'Plena fe en puntos clave.'},
-    {id:'presuncion', name:'Presuncion Judicial', rarity:'COMUN', bonus:'+5% XP prueba', tip:'Inferir con precision.'},
-    {id:'casacion', name:'Casacion', rarity:'EPICA', bonus:'+20% XP recursos', tip:'Ataca errores de derecho.'},
-    {id:'proteccion', name:'Proteccion', rarity:'RARA', bonus:'+10% XP constitucional', tip:'Restablece el imperio del derecho.'}
+    {id:'art443', name:'Mandamiento', rarity:'RARA', bonus:'+1 escudo de requerimiento', tip:'Ordena requerir y embargar.'},
+    {id:'art464', name:'Art. 464 CPC', rarity:'RARA', bonus:'+1 pista en excepciones', tip:'Defensas del ejecutado.'},
+    {id:'embargo', name:'Sello de Embargo', rarity:'COMUN', bonus:'+10% XP en mobs', tip:'Traba bienes para asegurar pago.'},
+    {id:'subasta', name:'Martillo de Remate', rarity:'EPICA', bonus:'+20% XP boss', tip:'Convierte bienes en pago.'},
+    {id:'instpub', name:'Instrumento Publico', rarity:'RARA', bonus:'+10% XP prueba', tip:'Puede fundar ejecucion.'}
   ];
   const NPCS = [
-    {c:14,r:8,name:'Secretario', sprite:'apple', line:'Cuida la notificacion. Sin emplazamiento, el juicio tambalea.', mission:'Toma 3 articulos.', relic:'instpub'},
-    {c:52,r:7,name:'Juez', sprite:'amulet', line:'No alegues de memoria. Di regla, hecho y consecuencia.', mission:'Resuelve una duda.', relic:'presuncion'},
-    {c:88,r:6,name:'Relator', sprite:'gem', line:'En recursos, identifica vicio y peticion concreta.', mission:'Gana una pregunta oral.', relic:'casacion'},
-    {c:132,r:8,name:'Ministro', sprite:'amulet', line:'Constitucional: ilegalidad o arbitrariedad, luego garantia.', mission:'Llega con confianza.', relic:'proteccion'}
+    {c:10,r:8,name:'Receptor', sprite:'apple', line:'Requiere de pago. Si falla, todo se atrasa.', mission:'Busca el mandamiento.', relic:'art443'},
+    {c:22,r:7,name:'Secretario', sprite:'amulet', line:'El titulo manda. Sin titulo, no hay ejecucion.', mission:'Toma Art. 434.', relic:'art434'},
+    {c:38,r:7,name:'Ejecutante', sprite:'gem', line:'Quiero pago rapido. Prueba deuda liquida y exigible.', mission:'Reune 3 articulos.', relic:'instpub'},
+    {c:55,r:8,name:'Ejecutado', sprite:'apple', line:'Tengo defensas. Elige excepcion correcta.', mission:'Gana una pregunta.', relic:'art464'},
+    {c:72,r:8,name:'Depositario', sprite:'amulet', line:'Bien embargado, bien custodiado.', mission:'Protege el expediente.', relic:'embargo'},
+    {c:92,r:6,name:'Martillero', sprite:'gem', line:'Tasacion primero. Remate despues.', mission:'Ordena el procedimiento.', relic:'subasta'},
+    {c:116,r:8,name:'Relator', sprite:'amulet', line:'En recursos: vicio claro, peticion concreta.', mission:'No improvises.', relic:'art464'},
+    {c:140,r:8,name:'Juez', sprite:'apple', line:'Si el titulo prescribe, deniego la ejecucion.', mission:'Llega al boss.', relic:'art434'}
   ];
   const MICRO_EVENTS = [
     {id:'expediente', name:'EXPEDIENTE PERDIDO', goal:'Recolecta 2 articulos', kind:'article', target:2, ttl:1500},
@@ -355,64 +388,101 @@
     {id:'audiencia', name:'AUDIENCIA SORPRESA', goal:'Responde 1 pregunta', kind:'quiz', target:1, ttl:1350}
   ];
   const LEGAL_CASES = [
-    {topic:'Cliente', q:'Pedro dice que pago. Juan niega el pago. Quien prueba?', options:['Juan','Pedro','El juez'], answer:1, ok:'Pago extingue obligacion: lo prueba quien lo alega.'},
-    {topic:'Conflicto', q:'Demanda sin tribunal competente. Que alerta se enciende?', options:['Incompetencia','Cosa juzgada','Confesion'], answer:0, ok:'Competencia primero: sin juez competente, el proceso falla.'},
-    {topic:'Decision', q:'Hay titulo ejecutivo claro. Que via corresponde?', options:['Ordinario','Ejecutivo','Proteccion'], answer:1, ok:'Titulo ejecutivo habilita cobro rapido por via ejecutiva.'}
+    {topic:'Caso 1', q:'Pedro dice que pago la deuda. Juan exige el cobro. Quien prueba el pago?', options:['Juan','Pedro','El tribunal'], answer:1, ok:'Pago extingue la obligacion: lo prueba quien lo alega.'},
+    {topic:'Caso 2', q:'El titulo no identifica una deuda clara. Que problema aparece?', options:['Falta de liquidez','Remate listo','Cosa juzgada'], answer:0, ok:'La ejecucion exige una deuda determinada o determinable.'},
+    {topic:'Caso 3', q:'Hay titulo ejecutivo suficiente. Que via corresponde?', options:['Juicio ordinario','Juicio ejecutivo','Recurso de proteccion'], answer:1, ok:'El titulo ejecutivo habilita el cobro rapido por via ejecutiva.'},
+    {topic:'Caso 4', q:'El demandado no paga al requerimiento. Que presion juridica avanza?', options:['Embargo','Casacion','Amparo'], answer:0, ok:'Si no paga, el embargo asegura bienes para la ejecucion.'},
+    {topic:'Caso 5', q:'El ejecutado alega deuda extinguida. Donde pelea esa defensa?', options:['Excepciones','Notificacion','Remate'], answer:0, ok:'La extincion se opone como excepcion del ejecutado.'},
+    {topic:'Caso 6', q:'El tribunal no es competente. Que defensa conviene detectar temprano?', options:['Incompetencia','Subasta','Tasacion'], answer:0, ok:'La competencia sostiene la validez del procedimiento.'},
+    {topic:'Caso 7', q:'El bien ya esta embargado. Quien debe custodiarlo con responsabilidad?', options:['Depositario','Relator','Ministro'], answer:0, ok:'El depositario conserva el bien afecto al procedimiento.'},
+    {topic:'Caso 8', q:'Antes del remate debes saber cuanto vale el bien. Que paso falta?', options:['Tasacion','Apelacion','Amparo'], answer:0, ok:'La tasacion prepara una venta judicial informada.'}
   ];
 
   const LAW_ARTICLES = [
-    {short:'Art. 1437 CC', title:'Fuentes de las obligaciones', tip:'Contrato, cuasicontrato, delito, cuasidelito y ley.'},
-    {short:'Art. 1445 CC', title:'Requisitos del acto jurídico', tip:'Capacidad, consentimiento, objeto y causa lícitos.'},
-    {short:'Art. 1451 CC', title:'Vicios del consentimiento', tip:'Error, fuerza y dolo contaminan la voluntad.'},
-    {short:'Art. 1467 CC', title:'Causa real y lícita', tip:'La causa es el motivo jurídicamente relevante.'},
-    {short:'Art. 1545 CC', title:'Fuerza obligatoria', tip:'El contrato válidamente celebrado vincula a las partes.'},
-    {short:'Art. 1546 CC', title:'Buena fe contractual', tip:'Obliga a lo pactado y a lo que emana de la naturaleza del contrato.'},
-    {short:'Art. 1556 CC', title:'Perjuicios', tip:'Distingue daño emergente y lucro cesante.'},
-    {short:'Art. 1698 CC', title:'Carga de la prueba', tip:'Prueba quien alega la obligación o su extinción.'},
-    {short:'Art. 1700 CC', title:'Instrumento público', tip:'Hace plena fe del otorgamiento y fecha.'},
-    {short:'Art. 254 CPC', title:'Demanda', tip:'Tribunal, partes, hechos, derecho y peticiones concretas.'},
-    {short:'Art. 258 CPC', title:'Emplazamiento', tip:'La contestación se sujeta al término legal.'},
-    {short:'Art. 303 CPC', title:'Excepciones dilatorias', tip:'Corrigen vicios antes de discutir el fondo.'},
-    {short:'Art. 341 CPC', title:'Medios de prueba', tip:'Instrumentos, testigos, confesión, inspección, peritos y presunciones.'},
-    {short:'Art. 434 CPC', title:'Título ejecutivo', tip:'Sin título ejecutivo no hay vía ejecutiva.'},
-    {short:'Art. 766 CPC', title:'Casación', tip:'Controla vicios de forma y errores de derecho.'},
-    {short:'Art. 1 CPR', title:'Bases institucionales', tip:'La persona humana está al centro del orden constitucional.'},
-    {short:'Art. 6 CPR', title:'Supremacía constitucional', tip:'Órganos y personas quedan sometidos a la Constitución.'},
-    {short:'Art. 7 CPR', title:'Principio de juridicidad', tip:'La competencia y la forma habilitan la actuación válida.'},
-    {short:'Art. 19 CPR', title:'Derechos fundamentales', tip:'Catálogo de garantías protegidas por el ordenamiento.'},
-    {short:'Art. 20 CPR', title:'Protección', tip:'Ampara derechos frente a actos u omisiones ilegales o arbitrarios.'},
-    {short:'Art. 21 CPR', title:'Amparo', tip:'Defiende libertad personal y seguridad individual.'}
+    {short:'Art. 434 CPC', title:'Titulo ejecutivo', tip:'La ejecucion nace de un titulo suficiente.'},
+    {short:'CPC: Liquidez', title:'Deuda liquida', tip:'La deuda debe ser clara o calculable para cobrar rapido.'},
+    {short:'CPC: Exigible', title:'Obligacion exigible', tip:'No basta deber: debe poder exigirse ahora.'},
+    {short:'CPC: Mandamiento', title:'Mandamiento ejecutivo', tip:'Ordena requerir pago y avanzar al embargo.'},
+    {short:'CPC: Requerir', title:'Requerimiento de pago', tip:'Primero se exige pagar; despues viene el apremio.'},
+    {short:'CPC: Embargo', title:'Traba de embargo', tip:'Se afectan bienes para asegurar el resultado.'},
+    {short:'CPC: Depositario', title:'Custodia de bienes', tip:'El bien embargado queda bajo cuidado responsable.'},
+    {short:'CPC: Tasacion', title:'Valoracion previa', tip:'Antes de vender, el procedimiento necesita precio base.'},
+    {short:'CPC: Remate', title:'Venta judicial', tip:'El remate transforma bienes en pago.'},
+    {short:'Art. 464 CPC', title:'Excepciones', tip:'El ejecutado concentra aqui sus defensas principales.'},
+    {short:'Art. 303 CPC', title:'Dilatorias', tip:'Corrigen vicios formales antes del fondo.'},
+    {short:'Art. 1698 CC', title:'Carga de la prueba', tip:'Prueba quien alega obligacion o extincion.'},
+    {short:'Art. 1700 CC', title:'Instrumento publico', tip:'Hace plena fe del otorgamiento y fecha.'},
+    {short:'Art. 1545 CC', title:'Fuerza obligatoria', tip:'El contrato valido vincula a las partes.'},
+    {short:'Art. 1546 CC', title:'Buena fe', tip:'El cumplimiento debe respetar lealtad juridica.'},
+    {short:'Art. 1556 CC', title:'Perjuicios', tip:'Distingue dano emergente y lucro cesante.'},
+    {short:'Sentencia firme', title:'Titulo judicial', tip:'Una decision firme puede abrir ejecucion.'},
+    {short:'Confesion', title:'Reconocimiento judicial', tip:'Reconocer deuda puede fortalecer el cobro.'},
+    {short:'Pago', title:'Modo de extinguir', tip:'Si se acredita, desarma la pretension ejecutiva.'},
+    {short:'Prescripcion', title:'Tiempo y accion', tip:'El paso del tiempo puede apagar la accion.'},
+    {short:'Novacion', title:'Nueva obligacion', tip:'Sustituye una deuda por otra y cambia la defensa.'},
+    {short:'Cosa juzgada', title:'Decision cerrada', tip:'Evita discutir de nuevo lo ya resuelto.'},
+    {short:'Competencia', title:'Juez habilitado', tip:'Sin competencia, el proceso pierde base.'},
+    {short:'Notificacion', title:'Emplazamiento valido', tip:'Una mala notificacion retrasa o invalida actuaciones.'}
   ];
   const ENEMY_TOPICS = [
-    'Error esencial', 'Fuerza moral', 'Dolo incidental', 'Objeto ilícito', 'Mora del deudor',
-    'Excepción dilatoria', 'Carga probatoria', 'Título ejecutivo', 'Casación formal', 'Acto arbitrario'
+    'Notif. defectuosa', 'Prescripcion', 'Excepcion dilatoria', 'Embargo mecanico', 'Bloqueo de cuenta',
+    'Receptor express', 'Titulo incompleto', 'Cosa juzgada', 'Incompetencia', 'Pago opuesto'
   ];
   const LAW_SIGNS = [
-    {c:3,r:3,text:'Ciudad del Grado'}, {c:21,r:7,text:'Acto jurídico'}, {c:33,r:5,text:'Obligaciones'},
-    {c:49,r:3,text:'Contratos'}, {c:69,r:5,text:'Responsabilidad'}, {c:86,r:3,text:'Procesal: prueba'},
-    {c:106,r:4,text:'Juicio ordinario'}, {c:113,r:3,text:'Ejecutivo'}, {c:136,r:3,text:'Constitucional'},
-    {c:150,r:2,text:'Comisión final'}
+    {c:3,r:3,text:'MUNDO 2: JUICIO EJECUTIVO'}, {c:21,r:7,text:'TITULO EJECUTIVO'}, {c:33,r:5,text:'DEUDA LIQUIDA'},
+    {c:49,r:3,text:'REQUERIMIENTO'}, {c:69,r:5,text:'EMBARGO'}, {c:86,r:3,text:'DEPOSITARIO'},
+    {c:106,r:4,text:'EXCEPCIONES'}, {c:123,r:3,text:'TASACION'}, {c:136,r:3,text:'REMATE'},
+    {c:150,r:2,text:'EJECUTOR SUPREMO'}
+  ];
+  const LEGAL_PROPS = [
+    {c:14,r:3,text:'MANDAMIENTO', sub:'REQUERIR + EMBARGAR'},
+    {c:31,r:3,text:'TITULO', sub:'DEUDA CLARA'},
+    {c:52,r:2,text:'REQUERIMIENTO', sub:'PAGA O DEFIENDE'},
+    {c:74,r:3,text:'EMBARGO', sub:'BIENES EN GARANTIA'},
+    {c:94,r:2,text:'DEPOSITARIO', sub:'CUSTODIA'},
+    {c:113,r:3,text:'EXCEPCIONES', sub:'ART. 464 CPC'},
+    {c:132,r:2,text:'TASACION', sub:'PRECIO BASE'},
+    {c:151,r:2,text:'REMATE', sub:'PAGO FINAL'}
   ];
   const SECTIONS = [
-    {from:0, to:24, name:'Ciudad del Grado', tip:'Hub de preparación: junta artículos y conserva confianza.'},
-    {from:25, to:59, name:'Reino Civil', tip:'Acto jurídico, obligaciones, contratos y responsabilidad.'},
-    {from:60, to:99, name:'Reino Procesal', tip:'Demanda, prueba, recursos y ejecución.'},
-    {from:100, to:145, name:'Reino Constitucional', tip:'Juridicidad, derechos y acciones cautelares.'},
-    {from:146, to:167, name:'Antesala de la Comisión', tip:'Responde con precisión y no pierdas confianza.'}
+    {from:0, to:24, name:'Entrada del Tribunal', tip:'Aprende el mapa ejecutivo: titulo, requerimiento, embargo y defensas.'},
+    {from:25, to:59, name:'Fabrica de Titulos', tip:'Solo un titulo suficiente abre la ruta rapida del cobro.'},
+    {from:60, to:99, name:'Zona de Embargo', tip:'El procedimiento asegura bienes cuando no hay pago voluntario.'},
+    {from:100, to:145, name:'Galeria de Excepciones', tip:'Aqui el ejecutado concentra sus defensas tecnicas.'},
+    {from:146, to:167, name:'Remate y Boss', tip:'Ordena el caso y vence al Ejecutor Supremo.'}
   ];
   const QUICK_QUESTIONS = [
-    {topic:'Civil', q:'¿Quién debe probar la obligación o su extinción?', options:['Quien la alega','Siempre el demandado','El tribunal de oficio'], answer:0, ok:'Art. 1698 CC: carga sobre quien afirma la obligación o su extinción.'},
-    {topic:'Civil', q:'¿Qué principio resume el Art. 1545 CC?', options:['Fuerza obligatoria','Buena fe procesal','Inexcusabilidad'], answer:0, ok:'Correcto: el contrato válido vincula como regla para las partes.'},
-    {topic:'Civil', q:'¿Cuál NO es vicio del consentimiento?', options:['Error','Tradición','Dolo'], answer:1, ok:'Bien: tradición es modo de adquirir, no vicio del consentimiento.'},
-    {topic:'Procesal', q:'Para iniciar juicio ordinario se presenta...', options:['Mandamiento','Demanda','Recurso de queja'], answer:1, ok:'Art. 253 CPC: el juicio ordinario comienza por demanda.'},
-    {topic:'Procesal', q:'La vía ejecutiva exige principalmente...', options:['Audiencia preparatoria','Título ejecutivo','Sentencia de reemplazo'], answer:1, ok:'Art. 434 CPC: el título es la llave de entrada del ejecutivo.'},
-    {topic:'Constitucional', q:'La protección del Art. 20 CPR se dirige contra...', options:['Sólo leyes inconstitucionales','Actos u omisiones ilegales o arbitrarios','Sólo sentencias firmes'], answer:1, ok:'Correcto: protege garantías frente a ilegalidad o arbitrariedad.'},
-    {topic:'Constitucional', q:'El amparo del Art. 21 CPR protege principalmente...', options:['Dominio','Buena fe contractual','Libertad personal'], answer:2, ok:'Bien: libertad personal y seguridad individual.'}
+    {topic:'Titulo', q:'Que abre la puerta del juicio ejecutivo?', options:['Titulo ejecutivo','Demanda ordinaria','Carta informal'], answer:0, ok:'Correcto: sin titulo ejecutivo no hay via ejecutiva.'},
+    {topic:'Liquidez', q:'La deuda ejecutiva debe ser...', options:['Liquida o liquidable','Secreta','Solo moral'], answer:0, ok:'Bien: debe conocerse el monto o poder calcularse.'},
+    {topic:'Exigibilidad', q:'Si el plazo de pago aun no vence, la obligacion...', options:['No es exigible','Ya esta rematada','Siempre prescribe'], answer:0, ok:'Exacto: exigible significa cobrable ahora.'},
+    {topic:'Mandamiento', q:'El mandamiento ejecutivo ordena principalmente...', options:['Requerir pago','Dictar sentencia penal','Crear contrato'], answer:0, ok:'Bien: activa requerimiento y eventual embargo.'},
+    {topic:'Requerimiento', q:'Si el ejecutado no paga al requerimiento, avanza...', options:['Embargo','Matrimonio','Amparo'], answer:0, ok:'Correcto: el embargo asegura bienes.'},
+    {topic:'Embargo', q:'Para que sirve el embargo?', options:['Asegurar bienes','Borrar el titulo','Cambiar juez'], answer:0, ok:'El embargo pone bienes al servicio del resultado.'},
+    {topic:'Depositario', q:'Quien cuida el bien embargado?', options:['Depositario','Demandante siempre','Testigo'], answer:0, ok:'Bien: el depositario custodia responsablemente.'},
+    {topic:'Tasacion', q:'La tasacion sirve para...', options:['Fijar valor','Notificar demanda','Absolver posiciones'], answer:0, ok:'Correcto: orienta precio base antes del remate.'},
+    {topic:'Remate', q:'El remate judicial convierte...', options:['Bienes en pago','Prueba en testigos','Ley en decreto'], answer:0, ok:'Bien: la venta judicial busca satisfacer el credito.'},
+    {topic:'Excepciones', q:'Donde concentra defensas el ejecutado?', options:['Excepciones','Salon de clases','Inventario'], answer:0, ok:'Correcto: las excepciones son el gran muro defensivo.'},
+    {topic:'Art. 464', q:'Que representa didacticamente el Art. 464 CPC?', options:['Catalogo de defensas','Lista de contratos','Accion constitucional'], answer:0, ok:'Bien: aqui viven defensas clave del ejecutado.'},
+    {topic:'Pago', q:'Si el ejecutado alega pago, quien debe probarlo?', options:['Quien lo alega','El receptor','El publico'], answer:0, ok:'Pago extingue: lo prueba quien invoca esa extincion.'},
+    {topic:'Prescripcion', q:'La prescripcion ataca principalmente...', options:['La accion por tiempo','El color del expediente','La musica'], answer:0, ok:'Correcto: el tiempo puede debilitar el cobro.'},
+    {topic:'Competencia', q:'Si el tribunal no puede conocer el asunto, hay...', options:['Incompetencia','Remate perfecto','Buena fe'], answer:0, ok:'Bien: juez competente primero, estrategia despues.'},
+    {topic:'Notificacion', q:'Una notificacion defectuosa puede causar...', options:['Retraso o nulidad','Pago automatico','Titulo nuevo'], answer:0, ok:'Correcto: el emplazamiento valido sostiene el proceso.'},
+    {topic:'Instrumento', q:'Un instrumento publico fuerte ayuda porque...', options:['Da fe de hechos formales','Anula todo','Nunca prueba nada'], answer:0, ok:'Bien: fecha y otorgamiento pesan en la prueba.'},
+    {topic:'Sentencia', q:'Una sentencia firme puede funcionar como...', options:['Titulo ejecutivo','Excepcion dilatoria','Tasador'], answer:0, ok:'Correcto: una decision firme puede ejecutarse.'},
+    {topic:'Confesion', q:'Reconocer la deuda en juicio puede formar...', options:['Base de cobro','Recurso penal','Competencia nueva'], answer:0, ok:'Bien: la confesion fortalece el camino probatorio.'},
+    {topic:'Cosa juzgada', q:'La cosa juzgada impide...', options:['Repetir lo ya resuelto','Embargar bienes','Leer articulos'], answer:0, ok:'Correcto: protege decisiones firmes.'},
+    {topic:'Dilatoria', q:'Una excepcion dilatoria normalmente mira...', options:['Vicios formales','Remate final','Precio del bien'], answer:0, ok:'Bien: corrige problemas antes del fondo.'},
+    {topic:'Buena fe', q:'En contratos, la buena fe exige...', options:['Lealtad en cumplimiento','Silencio absoluto','Prescripcion inmediata'], answer:0, ok:'Correcto: la conducta debe ser leal y coherente.'},
+    {topic:'Perjuicios', q:'Dano emergente y lucro cesante son categorias de...', options:['Perjuicios','Competencia','Notificacion'], answer:0, ok:'Bien: distinguen perdidas directas y ganancias frustradas.'},
+    {topic:'Rebeldia', q:'Que significa que el demandado no comparezca?', options:['Rebeldia, no confesion total','Gana automaticamente','Se elimina el juez'], answer:0, ok:'Exacto: la rebeldia no equivale a tener razon sin prueba.'},
+    {topic:'Estrategia', q:'Que respuesta juridica es mas fuerte?', options:['Hecho + norma + peticion','Solo enojo','Solo velocidad'], answer:0, ok:'Bien: argumentar es unir hechos, regla y consecuencia.'}
   ];
   const FINAL_EXAM = [
-    {topic:'Fase Civil', q:'Caso Civil: un contrato válido se incumple. ¿Qué norma invocas como idea matriz?', options:['Art. 434 CPC','Art. 1545 CC','Art. 21 CPR'], answer:1, ok:'Fase Civil superada: ley del contrato y responsabilidad por incumplimiento.'},
-    {topic:'Fase Procesal', q:'Caso Procesal: quieres cobrar ejecutivamente. ¿Qué necesitas antes de correr?', options:['Recurso de protección','Posesión efectiva','Título ejecutivo'], answer:2, ok:'Fase Procesal superada: sin título ejecutivo no hay juicio ejecutivo.'},
-    {topic:'Fase Constitucional', q:'Caso Constitucional: amenaza ilegal a un derecho protegido. ¿Qué acción aparece?', options:['Nulidad absoluta','Protección','Casación en el fondo'], answer:1, ok:'Fase Constitucional superada: Art. 20 CPR restablece el imperio del derecho.'}
+    {topic:'Fase 1: Titulo', q:'El Ejecutor Supremo exige entrada. Que debes mostrar primero?', options:['Titulo ejecutivo','Recurso de proteccion','Contrato verbal dudoso'], answer:0, ok:'Fase 1 limpia: el titulo sostiene la via ejecutiva.'},
+    {topic:'Fase 2: Requerimiento', q:'Ya tienes titulo. Que acto presiona el pago antes del embargo?', options:['Requerimiento de pago','Tasacion final','Sentencia penal'], answer:0, ok:'Fase 2 limpia: requerir pago ordena la siguiente decision.'},
+    {topic:'Fase 3: Embargo', q:'No hubo pago. Que herramienta asegura bienes para el resultado?', options:['Embargo','Nulidad absoluta','Amparo'], answer:0, ok:'Fase 3 limpia: el embargo da soporte real al cobro.'},
+    {topic:'Fase 4: Excepciones', q:'El ejecutado alega pago y prescripcion. Donde se resuelve esa defensa?', options:['Excepciones','Creditos de color','Inventario escolar'], answer:0, ok:'Fase 4 limpia: defensas claras, prueba clara.'},
+    {topic:'Fase 5: Remate', q:'Con embargo firme y tasacion, como se transforma el bien en satisfaccion?', options:['Remate judicial','Nueva demanda ordinaria','Confesion del juez'], answer:0, ok:'Boss vencido: ordenaste la ejecucion de inicio a fin.'}
   ];
 
   const key=(c,r)=>c+','+r;
@@ -550,6 +620,7 @@
   let particles = [], floats = [];
   let cameraX = 0, tick = 0, clearT = 0, jumpBuf = 0;
   let articlePickups = 0, quizScore = 0, finalPhase = 0, studyToastT = 0;
+  let articlePanelT = 0, lastArticlePanelKey = '';
   let quizState = null;
   let progress = loadProgress();
   let activeMicro = null, nextMicroAt = 28, nextCaseAt = 120;
@@ -609,7 +680,11 @@
     html+='<div class="codex-row"><span>Nivel</span><span class="rare">'+progress.level+'</span></div>';
     if(relicRows.length===0 && articleRows.length===0) html+='<div>Aun no hay reliquias. Juega y desbloquea.</div>';
     for(const r of relicRows) html+='<div class="codex-row"><span>'+r.name+'</span><span class="rare">'+r.rarity+'</span></div>';
-    for(const a of articleRows) html+='<div class="codex-row"><span>'+a+'</span><span class="rare">ART</span></div>';
+    for(const a of articleRows){
+      const law=LAW_ARTICLES.find(l=>l.short===a);
+      html+='<div class="codex-row"><span>'+a+'</span><span class="rare">ART</span></div>';
+      if(law) html+='<div class="codex-tip">'+law.title+' - '+law.tip+'</div>';
+    }
     body.innerHTML=html;
   }
   function toggleCodex(){
@@ -631,12 +706,13 @@
     articlePickups=0; quizScore=0; finalPhase=0; quizState=null; mastery.clear(); seenSections.clear();
     activeMicro=null; nextMicroAt=28; nextCaseAt=120; talkedNpc.clear();
     codexOpen=false; document.getElementById('codex-panel').classList.add('hidden');
-    hideQuickQuiz(); showStudy('Ciudad del Grado: junta artículos, responde al vuelo y llega a la Comisión.', 180);
+    articlePanelT=0; lastArticlePanelKey=''; hideArticlePanel();
+    hideQuickQuiz(); showStudy('Mundo 2: junta articulos ejecutivos, habla con NPCs y vence al Ejecutor Supremo.', 180);
     clampCam(); state='playing'; ensureAudio(); sfx('start');
   }
   function respawn(){
     resetEnemies(); placePlayer(); particles=[]; floats=[]; projs=[];
-    quizState=null; hideQuickQuiz();
+    quizState=null; hideQuickQuiz(); hideArticlePanel();
     timer=TIME_START; player.invul=120; clampCam(); state='playing';
   }
   function damage(srcX){
@@ -681,6 +757,48 @@
       if(studyToastT===0) document.getElementById('study-toast').classList.remove('show');
     }
   }
+  function hideArticlePanel(){
+    const el=document.getElementById('article-panel');
+    if(!el) return;
+    el.classList.remove('show');
+    el.classList.add('hidden');
+    articlePanelT=0;
+  }
+  function masteryLevelFor(law){
+    if(!law) return 1;
+    return Math.min(5, Math.max(1, mastery.get(law.short)||1));
+  }
+  function setArticlePanel(law, mode, frames){
+    if(!law) return;
+    const panel=document.getElementById('article-panel');
+    if(!panel) return;
+    const modeEl=document.getElementById('article-mode');
+    const masteryEl=document.getElementById('article-mastery');
+    const shortEl=document.getElementById('article-short');
+    const titleEl=document.getElementById('article-title');
+    const tipEl=document.getElementById('article-tip');
+    if(modeEl) modeEl.textContent=mode||'ARTICULO';
+    if(masteryEl) masteryEl.textContent='DOMINIO '+masteryLevelFor(law)+'/5';
+    if(shortEl) shortEl.textContent=law.short;
+    if(titleEl) titleEl.textContent=law.title;
+    if(tipEl) tipEl.textContent=law.tip;
+    panel.classList.remove('hidden');
+    requestAnimationFrame(()=>panel.classList.add('show'));
+    articlePanelT=frames||130;
+    lastArticlePanelKey=law.short+'|'+(mode||'ARTICULO');
+  }
+  function updateArticlePanel(){
+    if(articlePanelT>0){
+      articlePanelT--;
+      if(articlePanelT===0){
+        const el=document.getElementById('article-panel');
+        if(el){
+          el.classList.remove('show');
+          setTimeout(()=>{ if(articlePanelT===0) el.classList.add('hidden'); }, 170);
+        }
+      }
+    }
+  }
   function lawForBlock(c,r){ return LAW_ARTICLES[Math.abs((c*7+r*3)%LAW_ARTICLES.length)]; }
   function sectionAtColumn(c){
     return SECTIONS.find(s=>c>=s.from && c<=s.to) || SECTIONS[0];
@@ -691,6 +809,23 @@
     if(!seenSections.has(section.name)){
       seenSections.add(section.name);
       showStudy(section.name+': '+section.tip, 180);
+    }
+  }
+  function watchNearestArticle(){
+    if(articlePanelT>70 || quizState) return;
+    const px=player.x+PW/2, py=player.y+PH/2;
+    let bestCoin=null, bestD=999999;
+    for(const c of coins){
+      if(c.collected || !c.law) continue;
+      const cx=c.x+COIN/2, cy=c.y+COIN/2;
+      const dx=Math.abs(px-cx), dy=Math.abs(py-cy);
+      if(dx>118 || dy>100) continue;
+      const d=dx*dx+dy*dy;
+      if(d<bestD){ bestD=d; bestCoin=c; }
+    }
+    if(bestCoin){
+      const panelKey=bestCoin.law.short+'|CERCA';
+      if(panelKey!==lastArticlePanelKey || articlePanelT<20) setArticlePanel(bestCoin.law, 'CERCA', 95);
     }
   }
   function nearestNpc(){
@@ -721,6 +856,7 @@
     awardXp(18, law.short);
     advanceMicro('article');
     addFloat(x+COIN/2, y-10, law.short, '#ffd23f');
+    setArticlePanel(law, 'DESCUBIERTO', 220);
     showStudy(law.short+' · '+law.title+': '+law.tip, 170);
     if(articlePickups%5===0) openQuickQuiz();
   }
@@ -847,7 +983,7 @@
     if(state!=='playing') return;
     state='finalExam'; finalPhase=0; clearT=0; player.vx=0; player.vy=0; keys.left=keys.right=false;
     sfx('clear');
-    showStudy('Comisión Examinadora: tres fases orales. Responde 1, 2 o 3.', 180);
+    showStudy('El Ejecutor Supremo: cinco fases orales. Responde con 1, 2 o 3.', 180);
     openQuickQuiz(FINAL_EXAM[0], {final:true});
   }
   function finishFinalExam(){
@@ -902,6 +1038,7 @@
     else if(k==='Digit1'||k==='Numpad1'){ answerQuiz(0); }
     else if(k==='Digit2'||k==='Numpad2'){ answerQuiz(1); }
     else if(k==='Digit3'||k==='Numpad3'){ answerQuiz(2); }
+    else if(k==='Digit4'||k==='Numpad4'){ answerQuiz(3); }
     else if(k==='KeyE'){ interactNpc(); }
     else if(k==='KeyC'){ toggleCodex(); }
     // menu confirm
@@ -1078,6 +1215,7 @@
     if(player.hurtT>0) player.hurtT--;
     if(player.shootCD>0) player.shootCD--;
     watchSection();
+    watchNearestArticle();
 
     // coins
     for(const c of coins){
@@ -1223,6 +1361,7 @@
   }
   function update(){
     updateStudyToast();
+    updateArticlePanel();
     updateQuiz();
     if(state==='playing'){
       if(quizState && quizState.pause){ updateParticles(); return; }
@@ -1254,6 +1393,10 @@
     ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
     ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
     ctx.closePath();
+  }
+  function shortCanvasLabel(text, max){
+    text=String(text||'');
+    return text.length>max ? text.slice(0, Math.max(0,max-3))+'...' : text;
   }
 
   function drawSky(){
@@ -1325,10 +1468,16 @@
     const bob=Math.sin(c.phase*0.5)*1.5;
     blit('coin', cx-dw/2, cy-baseH/2+bob, dw, baseH);
     if(c.law){
+      const label=c.law.short.length>14 ? c.law.short.slice(0,13)+'...' : c.law.short;
       ctx.font='6px "Press Start 2P", monospace';
       ctx.textAlign='center';
-      ctx.fillStyle='rgba(0,0,0,.58)'; ctx.fillText(c.law.short, cx+1, cy-20+bob+1);
-      ctx.fillStyle='#3a2300'; ctx.fillText(c.law.short, cx, cy-20+bob);
+      const tw=Math.max(42, ctx.measureText(label).width+10);
+      const py=cy-27+bob;
+      ctx.fillStyle='rgba(18,12,36,.78)';
+      rr(cx-tw/2, py, tw, 14, 5); ctx.fill();
+      ctx.strokeStyle='rgba(255,210,63,.70)'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='rgba(0,0,0,.58)'; ctx.fillText(label, cx+1, py+10);
+      ctx.fillStyle='#fff4d6'; ctx.fillText(label, cx, py+9);
       ctx.textAlign='left';
     }
   }
@@ -1373,8 +1522,9 @@
     blitAnchor(name, cx, by+2, k, e.dir>0);
     ctx.font='7px "Press Start 2P", monospace';
     ctx.textAlign='center';
-    ctx.fillStyle='rgba(0,0,0,.58)'; ctx.fillText(e.topic||'Duda', cx+1, e.y-8+1);
-    ctx.fillStyle='#ffec9a'; ctx.fillText(e.topic||'Duda', cx, e.y-8);
+    const label=shortCanvasLabel(e.topic||'Duda', 18);
+    ctx.fillStyle='rgba(0,0,0,.58)'; ctx.fillText(label, cx+1, e.y-8+1);
+    ctx.fillStyle='#ffec9a'; ctx.fillText(label, cx, e.y-8);
     ctx.textAlign='left';
   }
 
@@ -1436,7 +1586,7 @@
     ctx.restore();
   }
   function drawExamBoss(){
-    const names=['Profesora Civil','Profesor Procesal','Profesora Constitucional'];
+    const names=['Titulo ejecutivo','Requerimiento','Embargo','Excepciones','Remate'];
     const phase=Math.min(finalPhase, names.length-1);
     const x=254, y=64, w=452, h=68;
     ctx.save();
@@ -1444,8 +1594,8 @@
     rr(x,y,w,h,10); ctx.fill();
     ctx.strokeStyle='rgba(255,210,63,.80)'; ctx.lineWidth=2; ctx.stroke();
     ctx.font='10px "Press Start 2P", monospace'; ctx.textAlign='center';
-    ctx.fillStyle='#7fdcff'; ctx.fillText('COMISION EXAMINADORA', x+w/2, y+20);
-    ctx.fillStyle='#fff4d6'; ctx.fillText(names[phase], x+w/2, y+40);
+    ctx.fillStyle='#7fdcff'; ctx.fillText('EL EJECUTOR SUPREMO', x+w/2, y+20);
+    ctx.fillStyle='#fff4d6'; ctx.fillText('FASE '+(phase+1)+': '+names[phase], x+w/2, y+40);
     const bx=x+36, by=y+52, bw=w-72, bh=8;
     ctx.fillStyle='rgba(255,255,255,.12)'; ctx.fillRect(bx,by,bw,bh);
     ctx.fillStyle='#ff5b78'; ctx.fillRect(bx,by,bw*((FINAL_EXAM.length-finalPhase)/FINAL_EXAM.length),bh);
@@ -1475,6 +1625,42 @@
     ctx.restore();
   }
 
+  function drawLegalProps(c0,c1){
+    ctx.save();
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    for(const prop of LEGAL_PROPS){
+      if(prop.c<c0-3 || prop.c>c1+3) continue;
+      const x=prop.c*TILE+TILE/2, y=prop.r*TILE+TILE/2;
+      const w=Math.max(118, prop.text.length*8.2), h=48;
+      ctx.strokeStyle='rgba(255,180,61,.48)';
+      ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.moveTo(x-w/2+14,y-62); ctx.lineTo(x-w/2+14,y-h/2);
+      ctx.moveTo(x+w/2-14,y-62); ctx.lineTo(x+w/2-14,y-h/2);
+      ctx.stroke();
+      ctx.fillStyle='rgba(9,9,24,.82)';
+      rr(x-w/2,y-h/2,w,h,7); ctx.fill();
+      ctx.strokeStyle='rgba(140,65,190,.86)'; ctx.lineWidth=3; ctx.stroke();
+      ctx.strokeStyle='rgba(255,210,63,.84)'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='rgba(255,210,63,.16)';
+      ctx.fillRect(x-w/2+8,y-h/2+7,w-16,5);
+      ctx.font='9px "Press Start 2P", monospace';
+      ctx.fillStyle='rgba(0,0,0,.55)';
+      ctx.fillText(shortCanvasLabel(prop.text, 16), x+1, y-6+1);
+      ctx.fillStyle='#ffd23f';
+      ctx.fillText(shortCanvasLabel(prop.text, 16), x, y-6);
+      ctx.font='7px "Press Start 2P", monospace';
+      ctx.fillStyle='#d8f3ff';
+      ctx.fillText(shortCanvasLabel(prop.sub, 20), x, y+13);
+      ctx.fillStyle='rgba(127,220,255,.18)';
+      ctx.fillRect(x-w/2+10,y+h/2-9,w-20,3);
+    }
+    ctx.textAlign='left';
+    ctx.textBaseline='alphabetic';
+    ctx.restore();
+  }
+
   function drawWorld(){
     ctx.save();
     ctx.translate(-Math.round(cameraX),0);
@@ -1494,6 +1680,7 @@
     // tiles
     for(let r=0;r<LH;r++) for(let c=c0;c<=c1;c++){ if(c>=0&&c<LW&&isSolid(c,r)) drawTile(c,r); }
     drawWorldLabels(c0,c1);
+    drawLegalProps(c0,c1);
     // spikes
     for(const s of spikes) drawSpike(s);
     // goal
